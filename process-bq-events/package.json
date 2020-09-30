@@ -1,0 +1,10 @@
+{
+  "name": "process-bq-events",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@google-cloud/bigquery": "^5.2.0"
+  }
+}
