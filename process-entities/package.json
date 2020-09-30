@@ -1,0 +1,10 @@
+{
+  "name": "process-events",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@parameter1/mongodb": "^1.2.5"
+  }
+}
