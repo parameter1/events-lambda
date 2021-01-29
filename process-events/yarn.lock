@@ -2,21 +2,21 @@
 # yarn lockfile v1
 
 
-"@parameter1/mongodb@^1.2.5":
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/@parameter1/mongodb/-/mongodb-1.2.5.tgz#6178e3f16513e0c970748f394e7c8d7e8e965afe"
-  integrity sha512-0n9zjHTKIeInIz5tf5XxPqpTMHk+DhA5D811hzrmHjtS75CLAPpuyI3wf4oELXq09kU9glDjccov+YpBsUCTBQ==
+"@parameter1/mongodb@^1.4.6":
+  version "1.4.6"
+  resolved "https://registry.yarnpkg.com/@parameter1/mongodb/-/mongodb-1.4.6.tgz#acbba216eb50e65f4a0d7670c89428434163f375"
+  integrity sha512-mWVvG2xC8Apa3yGy0wWWMOoUIybPUUz03e+62D6uTmD55lnG/BSRs769Zb1T1gfQ05lDIgw790pYfXkgnXoBFA==
   dependencies:
-    "@parameter1/utils" "^1.1.4"
+    "@parameter1/utils" "^1.1.12"
     async "^3.2.0"
-    mongodb "^3.6.2"
+    mongodb "^3.6.3"
 
-"@parameter1/utils@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@parameter1/utils/-/utils-1.1.4.tgz#590ace247451f2b2f042a3f2cb2537240247ed49"
-  integrity sha512-aJpPuJZCjziC26xAS5E9cjNGBmKkkJ5J7TmhvgaMT4kmtyRAZ3O3/xKuywJ8i4SMFLIWr6TGFsphsvL9nv2nKw==
+"@parameter1/utils@^1.1.12":
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/@parameter1/utils/-/utils-1.1.12.tgz#babba0a2d9966d9012084d74234a13f35a4189b5"
+  integrity sha512-bqwsxjdo8SiI/fOfEG+ZVfsCj0lSuhEHf4W08uJhGOJV2Oef9aBL0xo5KrMmN78iXeUjGAqSQ5y/9xb4UWtqKg==
   dependencies:
-    object-path "^0.11.4"
+    object-path "^0.11.5"
 
 async@^3.2.0:
   version "3.2.0"
@@ -61,10 +61,10 @@ memory-pager@^1.0.2:
   resolved "https://registry.yarnpkg.com/memory-pager/-/memory-pager-1.5.0.tgz#d8751655d22d384682741c972f2c3d6dfa3e66b5"
   integrity sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg==
 
-mongodb@^3.6.2:
-  version "3.6.2"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.6.2.tgz#1154a4ac107bf1375112d83a29c5cf97704e96b6"
-  integrity sha512-sSZOb04w3HcnrrXC82NEh/YGCmBuRgR+C1hZgmmv4L6dBz4BkRse6Y8/q/neXer9i95fKUBbFi4KgeceXmbsOA==
+mongodb@^3.6.3:
+  version "3.6.3"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.6.3.tgz#eddaed0cc3598474d7a15f0f2a5b04848489fd05"
+  integrity sha512-rOZuR0QkodZiM+UbQE5kDsJykBqWi0CL4Ec2i1nrGrUI3KO11r6Fbxskqmq3JK2NH7aW4dcccBuUujAP0ERl5w==
   dependencies:
     bl "^2.2.1"
     bson "^1.1.4"
@@ -74,10 +74,10 @@ mongodb@^3.6.2:
   optionalDependencies:
     saslprep "^1.0.0"
 
-object-path@^0.11.4:
-  version "0.11.4"
-  resolved "https://registry.yarnpkg.com/object-path/-/object-path-0.11.4.tgz#370ae752fbf37de3ea70a861c23bba8915691949"
-  integrity sha1-NwrnUvvzfePqcKhhwju6iRVpGUk=
+object-path@^0.11.5:
+  version "0.11.5"
+  resolved "https://registry.yarnpkg.com/object-path/-/object-path-0.11.5.tgz#d4e3cf19601a5140a55a16ad712019a9c50b577a"
+  integrity sha512-jgSbThcoR/s+XumvGMTMf81QVBmah+/Q7K7YduKeKVWL7N111unR2d6pZZarSk6kY/caeNxUDyxOvMWyzoU2eg==
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
