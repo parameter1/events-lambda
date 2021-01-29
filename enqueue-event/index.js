@@ -27,6 +27,15 @@ const parse = (data) => {
 
 const validate = (payload) => requiredEventFields.every((key) => payload[key]);
 
+/**
+ * Enabled tenants. If the incoming payload `slug` does not match
+ * one of these tenants, an error will be thrown.
+ */
+const tenants = {
+  acbm: true,
+  randallreilly: true,
+};
+
 exports.handler = async (event, context) => {
   const { requestContext, queryStringParameters, body } = event;
   const { http } = requestContext;
@@ -39,6 +48,9 @@ exports.handler = async (event, context) => {
     if (!payload) return badRequest('Unable to parse JSON payload from data query parameter');
     if (!validate(payload)) return badRequest(`Invalid event payload provided. Must contain ${requiredEventFields.join(', ')}`);
 
+    const { slug } = payload;
+    if (!tenants[slug]) return badRequest(`The tenant slug '${slug}' is not enabled.`);
+
     if (version === '2') {
       const { ent } = payload;
 
@@ -46,7 +58,7 @@ exports.handler = async (event, context) => {
         _id: nanoid(),
         ts: Date.now(),
 
-        slug: payload.slug,
+        slug,
         host: payload.host,
         act: payload.act,
         cat: payload.cat,
@@ -83,7 +95,7 @@ exports.handler = async (event, context) => {
       _id: nanoid(),
       ts: Date.now(),
 
-      slug: payload.slug,
+      slug,
       host: payload.host,
       act: payload.act,
       cat: payload.cat,
