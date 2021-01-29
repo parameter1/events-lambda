@@ -61,6 +61,7 @@ exports.handler = async (event, context) => {
         ts: Date.now(),
 
         slug,
+        realm: payload.realm,
         host: payload.host,
         act: payload.act,
         cat: payload.cat,
