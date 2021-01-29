@@ -33,6 +33,8 @@ const validate = (payload) => requiredEventFields.every((key) => payload[key]);
  */
 const tenants = {
   acbm: true,
+  allured: true,
+  pmmi: true,
   randallreilly: true,
 };
 
