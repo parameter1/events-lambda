@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
     if (!tenants[slug]) return badRequest(`The tenant slug '${slug}' is not enabled.`);
 
     if (version === '2') {
-      const { ent } = payload;
+      const ent = { ...payload.ent, slug };
 
       const message = {
         _id: nanoid(),
