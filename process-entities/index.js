@@ -72,13 +72,20 @@ exports.handler = async (event, context = {}) => {
   // see https://docs.atlas.mongodb.com/best-practices-connecting-to-aws-lambda/
   context.callbackWaitsForEmptyEventLoop = false;
 
-  // @todo how to handle for multiple tenant slugs?
-  const collection = await db.collection({ dbName: 'p1-events-acbm-fcp', name: 'entities' });
-
-  const ops = [];
-  event.Records.forEach((record) => {
+  const opsMap = event.Records.reduce((map, record) => {
     const doc = JSON.parse(record.body);
-    ops.push(...createOpsFor(doc));
-  });
-  if (ops.length) await collection.bulkWrite(ops);
+    const { slug } = doc;
+    if (!map.has(slug)) map.set(slug, []);
+    map.get(slug).push(...createOpsFor(doc));
+    return map;
+  }, new Map());
+
+  /**
+   * Convert map into an array of bulk write operations per tenant.
+   */
+  await Promise.all(Array.from(opsMap, ([slug, ops]) => ({ slug, ops })).map(async ({ slug, ops }) => {
+    const dbName = `p1-events-${slug}`;
+    const collection = await db.collection({ dbName, name: 'entities' });
+    await collection.bulkWrite(ops);
+  }));
 };
