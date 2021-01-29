@@ -62,6 +62,7 @@ exports.handler = async (event, context) => {
 
         slug,
         realm: payload.realm,
+        env: payload.env,
         host: payload.host,
         act: payload.act,
         cat: payload.cat,
