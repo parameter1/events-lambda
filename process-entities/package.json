@@ -5,6 +5,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@parameter1/mongodb": "^1.2.5"
+    "@parameter1/mongodb": "^1.4.6"
   }
 }
