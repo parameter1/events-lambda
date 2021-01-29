@@ -72,18 +72,20 @@ exports.handler = async (event, context) => {
         version,
       };
 
-      await Promise.all([
+      const promises = [
         sqs.sendMessage({ QueueUrl: QUEUE_URL, MessageBody: JSON.stringify(message) }).promise(),
         sqs.sendMessage({ QueueUrl: ENTITIES_QUEUE_URL, MessageBody: JSON.stringify(ent) }).promise(),
-        sqs.sendMessage({
+      ];
+      if (slug === 'acbm') {
+        promises.push(sqs.sendMessage({
           QueueUrl: LL_BQ_QUEUE_URL,
           MessageBody: JSON.stringify({
             ...message,
             entity: ent,
           }),
-        }).promise(),
-      ]);
-
+        }).promise());
+      }
+      await promises;
       return {
         statusCode: 200,
         body: `OK (v${version})`,
@@ -107,10 +109,9 @@ exports.handler = async (event, context) => {
       ua: requestContext.http.userAgent,
     });
 
-    await Promise.all([
-      sqs.sendMessage({ QueueUrl: QUEUE_URL, MessageBody: message }).promise(),
-      sqs.sendMessage({ QueueUrl: LL_BQ_QUEUE_URL, MessageBody: message }).promise(),
-    ]);
+    const promises = [sqs.sendMessage({ QueueUrl: QUEUE_URL, MessageBody: message }).promise()];
+    if (slug === 'acbm') promises.push(sqs.sendMessage({ QueueUrl: LL_BQ_QUEUE_URL, MessageBody: message }).promise());
+    await promises;
     return {
       statusCode: 200,
       body: 'OK',
