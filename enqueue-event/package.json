@@ -5,6 +5,9 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "nanoid": "^3.1.20"
+    "lodash.isempty": "^4.4.0",
+    "lodash.isplainobject": "^4.0.6",
+    "nanoid": "^3.1.20",
+    "object-hash": "^2.1.1"
   }
 }

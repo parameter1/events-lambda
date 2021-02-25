@@ -1,5 +1,8 @@
 const { nanoid } = require('nanoid');
 const AWS = require('aws-sdk');
+const hash = require('object-hash');
+const isPlainObject = require('lodash.isplainobject');
+const isEmpty = require('lodash.isempty');
 
 const {
   QUEUE_URL,
@@ -56,6 +59,8 @@ exports.handler = async (event, context) => {
 
     if (version === '2') {
       const ent = { ...payload.ent, slug };
+      const props = isPlainObject(payload.props) && !isEmpty(payload.props) ? payload.props : undefined;
+      if (props) props._id = hash(props);
 
       const message = {
         _id: nanoid(),
@@ -71,6 +76,8 @@ exports.handler = async (event, context) => {
         ent: ent.id,
         vis: payload.vis,
         idt: payload.idt,
+        ctx: payload.ctx,
+        props,
 
         ip: requestContext.http.sourceIp,
         ua: requestContext.http.userAgent,
