@@ -9,5 +9,10 @@
     "lodash.isplainobject": "^4.0.6",
     "nanoid": "^3.1.20",
     "object-hash": "^2.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.20.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
   }
 }
