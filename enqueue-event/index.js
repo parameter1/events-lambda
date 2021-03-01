@@ -1,8 +1,7 @@
+const AWS = require('aws-sdk'); // eslint-disable-line import/no-extraneous-dependencies
 const { nanoid } = require('nanoid');
-const AWS = require('aws-sdk');
 const hash = require('object-hash');
-const isPlainObject = require('lodash.isplainobject');
-const isEmpty = require('lodash.isempty');
+const Joi = require('@parameter1/joi');
 
 const {
   QUEUE_URL,
@@ -12,7 +11,61 @@ const {
 
 const sqs = new AWS.SQS();
 const contentType = 'text/plain';
-const requiredEventFields = ['slug', 'host', 'act', 'cat', 'ent', 'vis'];
+const { isArray } = Array;
+
+/**
+ * Enabled tenants. If the incoming payload `slug` does not match
+ * one of these tenants, an error will be thrown.
+ */
+const tenants = [
+  'acbm',
+  'allured',
+  'indm',
+  'pmmi',
+  'randallreilly',
+];
+
+const entitySchema = Joi.object({
+  id: Joi.string().trim().required(),
+  name: Joi.string().trim().default(''),
+  props: Joi.object(),
+  refs: Joi.object(),
+});
+
+const eventSchema = Joi.object({
+  act: Joi.string().trim().required(),
+  cat: Joi.string().trim().required(),
+  lab: Joi.string().trim().default(''),
+  ent: entitySchema.required(),
+  props: Joi.object().default({}),
+  ctx: entitySchema,
+});
+
+const rootSchema = Joi.object({
+  slug: Joi.string().trim().valid(...tenants).required(),
+  realm: Joi.string().trim().default(''),
+  env: Joi.string().trim().default(''),
+  host: Joi.string().trim().hostname().required(),
+  vis: Joi.string().trim().required(),
+  idt: Joi.string().trim().default(''),
+  events: Joi.array().items(eventSchema).required(),
+});
+
+const convertToMultiEvent = (payload) => {
+  const fields = {
+    root: Object.keys(rootSchema.describe().keys),
+    event: Object.keys(eventSchema.describe().keys),
+  };
+  const event = fields.event.reduce((o, key) => {
+    const value = payload[key];
+    return { ...o, [key]: value };
+  }, {});
+  const root = fields.root.reduce((o, key) => {
+    const value = payload[key];
+    return { ...o, [key]: value };
+  }, {});
+  return { ...root, events: [event] };
+};
 
 const badRequest = (body) => ({
   statusCode: 400,
@@ -28,107 +81,77 @@ const parse = (data) => {
   }
 };
 
-const validate = (payload) => requiredEventFields.every((key) => payload[key]);
-
-/**
- * Enabled tenants. If the incoming payload `slug` does not match
- * one of these tenants, an error will be thrown.
- */
-const tenants = {
-  acbm: true,
-  allured: true,
-  indm: true,
-  pmmi: true,
-  randallreilly: true,
-};
-
-exports.handler = async (event, context) => {
-  const { requestContext, queryStringParameters, body } = event;
-  const { http } = requestContext;
+exports.handler = async (event = {}) => {
+  const { requestContext = {}, body } = event;
+  const { http = {} } = requestContext;
 
   if (http.method === 'OPTIONS') return { statusCode: 200 };
-  const version = queryStringParameters && queryStringParameters.version;
+  if (!body) return badRequest('No body was provided.');
+  let payload = parse(body);
+  if (!payload) return badRequest('Unable to parse JSON payload from data query parameter');
 
-  if (body || (queryStringParameters && queryStringParameters.data)) {
-    const payload = parse(body || queryStringParameters.data);
-    if (!payload) return badRequest('Unable to parse JSON payload from data query parameter');
-    if (!validate(payload)) return badRequest(`Invalid event payload provided. Must contain ${requiredEventFields.join(', ')}`);
-
-    const { slug } = payload;
-    if (!tenants[slug]) return badRequest(`The tenant slug '${slug}' is not enabled.`);
-
-    if (version === '2') {
-      const ent = { ...payload.ent, slug };
-      const props = isPlainObject(payload.props) && !isEmpty(payload.props) ? payload.props : undefined;
-      if (props) props._id = hash(props);
-
-      const message = {
-        _id: nanoid(),
-        ts: Date.now(),
-
-        slug,
-        realm: payload.realm,
-        env: payload.env,
-        host: payload.host,
-        act: payload.act,
-        cat: payload.cat,
-        lab: payload.lab,
-        ent: ent.id,
-        vis: payload.vis,
-        idt: payload.idt,
-        ctx: payload.ctx,
-        props,
-
-        ip: requestContext.http.sourceIp,
-        ua: requestContext.http.userAgent,
-        version,
-      };
-
-      const promises = [
-        sqs.sendMessage({ QueueUrl: QUEUE_URL, MessageBody: JSON.stringify(message) }).promise(),
-        sqs.sendMessage({ QueueUrl: ENTITIES_QUEUE_URL, MessageBody: JSON.stringify(ent) }).promise(),
-      ];
-      if (slug === 'acbm') {
-        promises.push(sqs.sendMessage({
-          QueueUrl: LL_BQ_QUEUE_URL,
-          MessageBody: JSON.stringify({
-            ...message,
-            entity: ent,
-          }),
-        }).promise());
-      }
-      await promises;
-      return {
-        statusCode: 200,
-        body: `OK (v${version})`,
-        headers: { 'content-type': contentType },
-      }
-    }
-
-    const message = JSON.stringify({
-      _id: nanoid(),
-      ts: Date.now(),
-
-      slug,
-      host: payload.host,
-      act: payload.act,
-      cat: payload.cat,
-      ent: payload.ent,
-      vis: payload.vis,
-      idt: payload.idt,
-
-      ip: requestContext.http.sourceIp,
-      ua: requestContext.http.userAgent,
-    });
-
-    const promises = [sqs.sendMessage({ QueueUrl: QUEUE_URL, MessageBody: message }).promise()];
-    if (slug === 'acbm') promises.push(sqs.sendMessage({ QueueUrl: LL_BQ_QUEUE_URL, MessageBody: message }).promise());
-    await promises;
-    return {
-      statusCode: 200,
-      body: 'OK',
-      headers: { 'content-type': contentType },
-    }
+  if (!isArray(payload.events)) {
+    // convert legacy, single event payloads to multi.
+    payload = convertToMultiEvent(payload);
   }
-  return badRequest('No body or data query parameter was provided.');
+
+  // then validate standard schema
+  const { value, error } = rootSchema.validate(payload);
+  if (error) return badRequest(`Invalid event payload: ${error.message}`);
+
+  // build the event and entity messaged to be processed
+  const { slug } = value;
+  const now = Date.now();
+  const { events, entities, bigQuery } = value.events.reduce((arrs, evt) => {
+    const { ent, ctx, props } = evt;
+
+    const eventMessage = {
+      _id: nanoid(),
+      ts: now,
+      slug: value.slug,
+      realm: value.realm,
+      env: value.env,
+      host: value.host,
+      vis: value.vis,
+      idt: value.idt,
+      act: evt.act,
+      cat: evt.cat,
+      lab: evt.lab,
+      ent: ent.id,
+      ctx: ctx && ctx.id ? ctx.id : '',
+      props: { ...props, _id: hash(props, { algorithm: 'md5' }) },
+
+      ip: http.sourceIp,
+      ua: http.userAgent,
+    };
+
+    arrs.events.push(eventMessage);
+    arrs.entities.push({ ...ent, slug });
+    if (ctx && ctx.id) arrs.entities.push({ ...ctx, slug });
+
+    if (slug === 'acbm') {
+      arrs.bigQuery.push({ ...eventMessage, entity: { ...ent, slug } });
+    }
+    return arrs;
+  }, { events: [], entities: [], bigQuery: [] });
+
+  await Promise.all([
+    ...events.map((message) => sqs.sendMessage({
+      QueueUrl: QUEUE_URL,
+      MessageBody: JSON.stringify(message),
+    }).promise()),
+    ...entities.map((message) => sqs.sendMessage({
+      QueueUrl: ENTITIES_QUEUE_URL,
+      MessageBody: JSON.stringify(message),
+    }).promise()),
+    ...bigQuery.map((message) => sqs.sendMessage({
+      QueueUrl: LL_BQ_QUEUE_URL,
+      MessageBody: JSON.stringify(message),
+    }).promise()),
+  ]);
+  return {
+    statusCode: 200,
+    body: 'OK',
+    headers: { 'content-type': contentType },
+  };
 };
