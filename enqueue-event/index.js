@@ -99,7 +99,7 @@ exports.handler = async (event = {}) => {
   const { value, error } = rootSchema.validate(payload);
   if (error) return badRequest(`Invalid event payload: ${error.message}`);
 
-  // build the event and entity messaged to be processed
+  // build the event and entity messages to be processed
   const { slug } = value;
   const now = Date.now();
   const { events, entities, bigQuery } = value.events.reduce((arrs, evt) => {
