@@ -45,7 +45,10 @@ const rootSchema = Joi.object({
   slug: Joi.string().trim().valid(...tenants).required(),
   realm: Joi.string().trim().default(''),
   env: Joi.string().trim().default(''),
-  host: Joi.string().trim().hostname().required(),
+  host: Joi.alternatives().try(
+    Joi.string().trim().hostname(),
+    Joi.string().trim().replace(/:\d+$/, '').ip({ version: ['ipv4'] }),
+  ).required(),
   vis: Joi.string().trim().required(),
   idt: Joi.string().trim().default(''),
   events: Joi.array().items(eventSchema).required(),
