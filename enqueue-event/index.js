@@ -46,7 +46,7 @@ const rootSchema = Joi.object({
   realm: Joi.string().trim().default(''),
   env: Joi.string().trim().default(''),
   host: Joi.alternatives().try(
-    Joi.string().trim().hostname(),
+    Joi.string().trim().replace(/:\d+$/, '').hostname(),
     Joi.string().trim().replace(/:\d+$/, '').ip({ version: ['ipv4'] }),
   ).required(),
   vis: Joi.string().trim().required(),
