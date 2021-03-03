@@ -36,7 +36,7 @@ const eventSchema = Joi.object({
   act: Joi.string().trim().required(),
   cat: Joi.string().trim().required(),
   lab: Joi.string().trim().default(''),
-  ent: entitySchema.required(),
+  ent: entitySchema,
   props: Joi.object().default({}),
   ctx: entitySchema,
 });
@@ -120,7 +120,7 @@ exports.handler = async (event = {}) => {
       act: evt.act,
       cat: evt.cat,
       lab: evt.lab,
-      ent: ent.id,
+      ent: ent && ent.id ? ent.id : '',
       ctx: ctx && ctx.id ? ctx.id : '',
       props: { ...props, _id: hash(props, { algorithm: 'md5' }) },
 
@@ -129,10 +129,10 @@ exports.handler = async (event = {}) => {
     };
 
     arrs.events.push(eventMessage);
-    arrs.entities.push({ ...ent, slug });
+    if (ent && ent.id) arrs.entities.push({ ...ent, slug });
     if (ctx && ctx.id) arrs.entities.push({ ...ctx, slug });
 
-    if (slug === 'acbm') {
+    if (slug === 'acbm' && ent && ent.id) {
       arrs.bigQuery.push({ ...eventMessage, entity: { ...ent, slug } });
     }
     return arrs;
