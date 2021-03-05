@@ -1,0 +1,18 @@
+{
+  "name": "archive-events",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@parameter1/mongodb": "^1.4.6",
+    "@parameter1/utils": "^1.1.13",
+    "dayjs": "^1.10.4",
+    "object-hash": "^2.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.20.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
+  }
+}
