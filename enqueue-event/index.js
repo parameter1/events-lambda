@@ -4,7 +4,6 @@ const hash = require('object-hash');
 const Joi = require('@parameter1/joi');
 
 const {
-  ARCHIVE_QUEUE_URL,
   QUEUE_URL,
   LL_BQ_QUEUE_URL,
   ENTITIES_QUEUE_URL,
@@ -142,10 +141,6 @@ exports.handler = async (event = {}) => {
   await Promise.all([
     ...events.map((message) => sqs.sendMessage({
       QueueUrl: QUEUE_URL,
-      MessageBody: JSON.stringify(message),
-    }).promise()),
-    ...events.map((message) => sqs.sendMessage({
-      QueueUrl: ARCHIVE_QUEUE_URL,
       MessageBody: JSON.stringify(message),
     }).promise()),
     ...entities.map((message) => sqs.sendMessage({
