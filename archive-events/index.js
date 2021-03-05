@@ -21,13 +21,17 @@ exports.handler = async (event, context) => {
   // see https://docs.atlas.mongodb.com/best-practices-connecting-to-aws-lambda/
   context.callbackWaitsForEmptyEventLoop = false;
 
+  const opsMap = new Map();
+  const visitorMap = new Map();
+
   /**
    * Map all records to the appropriate tenant slug.
    */
-  const opsMap = event.Records.reduce((map, record) => {
+  event.Records.forEach((record) => {
     const doc = JSON.parse(record.body);
     const { slug } = doc;
-    if (!map.has(slug)) map.set(slug, []);
+    if (!opsMap.has(slug)) opsMap.set(slug, []);
+    if (!visitorMap.has(slug)) visitorMap.set(slug, []);
 
     // replace the timestamp with a Date
     const date = new Date(doc.ts);
@@ -53,6 +57,23 @@ exports.handler = async (event, context) => {
     // this will become the unique event id
     const hash = objectHash(toHash);
 
+    visitorMap.get(slug).push({
+      updateOne: {
+        filter: { month, hash },
+        update: {
+          $addToSet: {
+            // create a unique set of visitors for the provided event and month
+            // use the identity, when present, otherwise use the visitor id
+            visitors: doc.idt ? doc.idt : doc.vis,
+          },
+          // add first and last seen at dates
+          $min: { firstSeenAt: date },
+          $max: { lastSeenAt: date },
+        },
+        upsert: true,
+      },
+    });
+
     // the upsert criteria
     const filter = { month, 'event.hash': hash };
     // the update settings
@@ -74,9 +95,8 @@ exports.handler = async (event, context) => {
       $max: { lastSeenAt: date },
     };
     const op = { updateOne: { filter, update, upsert: true } };
-    map.get(slug).push(op);
-    return map;
-  }, new Map());
+    opsMap.get(slug).push(op);
+  });
 
   /**
    * Convert map into an array of bulk write operations per tenant.
