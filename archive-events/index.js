@@ -69,6 +69,9 @@ exports.handler = async (event, context) => {
         ...(doc.idt && { identities: doc.idt }),
         ...(!doc.idt && { visitors: doc.vis }),
       },
+      // add first and last seen at dates
+      $min: { firstSeenAt: date },
+      $max: { lastSeenAt: date },
     };
     const op = { updateOne: { filter, update, upsert: true } };
     map.get(slug).push(op);
