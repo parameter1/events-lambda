@@ -17,6 +17,7 @@ const keys = [
 ];
 
 const db = mongodb();
+const basePattern = /^(base\..+\.content)([-a-z]+)(\*\d+)$/;
 
 exports.handler = async (event, context) => {
   // see https://docs.atlas.mongodb.com/best-practices-connecting-to-aws-lambda/
@@ -41,6 +42,10 @@ exports.handler = async (event, context) => {
       if (key === 'props' && value._id && Object.keys(value).length === 1) {
         // the only prop key that exists is the `_id`. unset.
         value = {};
+      }
+      // @todo change this globally!
+      if (['ent', 'ctx'].includes(key) && basePattern.test(value)) {
+        value = value.replace(basePattern, '$1$3');
       }
       return { ...o, [key]: value };
     }, {});
