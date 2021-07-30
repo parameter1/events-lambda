@@ -18,8 +18,10 @@ const { isArray } = Array;
  * one of these tenants, an error will be thrown.
  */
 const tenants = [
+  'abmedia',
   'acbm',
   'allured',
+  'diverse',
   'indm',
   'pmmi',
   'randallreilly',
